@@ -3,6 +3,7 @@ import sys
 import csv
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 def get_length(point1,point2):
     xdiff = point1[0] - point2[0]
@@ -136,6 +137,8 @@ def getFeatureVectors(input, window, filename):
     allRows = [[float(j) for j in i] for i in input]
     j = 0
     input_data = []
+    feature_data_f = []
+    feature_data_h = []
     for row in allRows:
         if(all(map(lambda x: x==0.0, row))):
             j=j+1
@@ -148,6 +151,7 @@ def getFeatureVectors(input, window, filename):
         y = []
         xcoord = []
         ycoord = []
+
         for i in range(1, window+1):
             if(all(map(lambda x: x==0.0,allRows[j+i]))):
                 break
@@ -164,13 +168,14 @@ def getFeatureVectors(input, window, filename):
         feature_vector.append(features)
 
         if(j%20 == 1 and j <= 1000):
-            fig = plt.figure()
-            plt.title(str(features))
-            plt.scatter(xcoord, ycoord,  color='black')
-            plt.scatter([allRows[j][0]],allRows[j][1], color='red')
-            plt.axis([-700,700,-400,400])
-            plt.savefig(filename + ' ' + str(j)+' future stroke.png')
-            plt.close()
+            # fig = plt.figure()
+            # plt.title(str(features))
+            # plt.scatter(xcoord, ycoord,  color='black')
+            # plt.scatter([allRows[j][0]],allRows[j][1], color='red')
+            # plt.axis([-700,700,-400,400])
+            # plt.savefig(filename + ' ' + str(j)+' future stroke new.png')
+            # plt.close()
+            feature_data_f.append([filename,features,xcoord,ycoord,allRows[j][0],allRows[j][1]])
 
         # History histogram 
         x=[]
@@ -195,13 +200,14 @@ def getFeatureVectors(input, window, filename):
         feature_vector.append(features)
 
         if(j%20 == 1 and j <= 1000):
-            fig = plt.figure()
-            plt.title(str(features))
-            plt.scatter(xcoord, ycoord,  color='black')
-            plt.scatter([allRows[j][0]],allRows[j][1], color='red')
-            plt.axis([-700,700,-400,400])
-            plt.savefig(filename + ' ' + str(j)+' history stroke.png')
-            plt.close()
+            # fig = plt.figure()
+            # plt.title(str(features))
+            # plt.scatter(xcoord, ycoord,  color='black')
+            # plt.scatter([allRows[j][0]],allRows[j][1], color='red')
+            # plt.axis([-700,700,-400,400])
+            # plt.savefig(filename + ' ' + str(j)+' history stroke new.png')
+            # plt.close()
+            feature_data_h.append([filename,features,xcoord,ycoord,allRows[j][0],allRows[j][1]])
 
         input_data.append(feature_vector)
         j=j+1
@@ -213,13 +219,28 @@ def getFeatureVectors(input, window, filename):
                 continue
         y_input.append(row[4])
     y_data = np.array(y_input)
-    return x_data,y_data
+    return x_data,y_data, feature_data_f, feature_data_h
 
+def get_minmax_features(input):
+    features = []
+    for stroke in input:
+        features.append([item[1] for item in stroke])
+    features = features[0]
+    minn = []
+    maxx = []
+    for index in range(0,len(features[0])):
+        minn.append(min([item[index] for item in features]))
+        maxx.append(max([item[index] for item in features]))
+    print(minn)
+    print(maxx)
+    return minn, maxx
 
 filename = sys.argv[1]
 query = open(filename,'r')
 
 input_data = []
+feature_data_f = []
+feature_data_h = []
 for i in range(1,len(sys.argv)):
     filename = sys.argv[i]
     input = open(filename,'r')
@@ -228,8 +249,20 @@ for i in range(1,len(sys.argv)):
     # print(allRows)
     columns = allRows.pop(0)
     input_data = input_data + allRows
+    x_data, y_data, fd_f, fd_h = getFeatureVectors(allRows,40,filename)
+    feature_data_f.append(fd_f)
+    feature_data_h.append(fd_h)
 
-getFeatureVectors(input_data,40,filename)
+feature_min, feature_max = get_minmax_features(feature_data_f+feature_data_h)
+j = 1
+for row in feature_data_f:
+    for row2 in row:
+        fig = plt.figure()
+        for i in range(0,11):
+            plt.scatter([i], [0], s=100, c=row2[1][i], vmin = feature_min[i], vmax = feature_max[i], cmap=cm.gray_r)
+        plt.savefig(row2[0] + ' ' + str(j)+' future feature new.png')
+        j = j+20
+        plt.close()
 
 allRows = [[float(j) for j in i] for i in input_data]
 sequence = []
