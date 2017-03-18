@@ -71,6 +71,7 @@ def getFeatureVectors(input, window, filename):
 				theta = 0
 			x.append(theta)
 
+		print(xcoord)
 		H, xedges, yedges = np.histogram2d(x, y, bins=(xedges, yedges))
 		feature_vector = feature_vector + [y for x in H for y in x]
 

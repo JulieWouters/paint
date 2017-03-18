@@ -131,7 +131,7 @@ def get_centroidal_radius(input):
 
     return (av_cr, stdev_cr)
 
-def getFeatureVectors(input, window, filename):
+def getNewFeatureVectors(input, window, filename):
 
 
     allRows = [[float(j) for j in i] for i in input]
@@ -139,12 +139,15 @@ def getFeatureVectors(input, window, filename):
     input_data = []
     feature_data_f = []
     feature_data_h = []
+    feature_vector = []
     for row in allRows:
         if(all(map(lambda x: x==0.0, row))):
             j=j+1
+            if(len(feature_vector)>0):
+                feature_vector = feature_vector[1::2]
+                input_data.append(feature_vector)
+            feature_vector = []
             continue
-
-        feature_vector = []
 
         # Future feature vector
         x = []
@@ -152,7 +155,7 @@ def getFeatureVectors(input, window, filename):
         xcoord = []
         ycoord = []
 
-        for i in range(1, window+1):
+        for i in range(1, 4*window+1):
             if(all(map(lambda x: x==0.0,allRows[j+i]))):
                 break
             xf = allRows[j+i][0]
@@ -163,11 +166,10 @@ def getFeatureVectors(input, window, filename):
             xcoord.append(xf)
             ycoord.append(yf)
 
-        features = list(get_directional_features(x)) + list(get_centroidal_radius(x)) + [get_closure(x)]
-        features = [round(item,2) for item in features]
-        feature_vector.append(features)
+        features_f = list(get_directional_features(x)) + list(get_centroidal_radius(x)) + [get_closure(x)]
+        features_f = [round(item,2) for item in features_f]
 
-        if(j%20 == 1 and j <= 1000):
+        if(j%10 == 1 and j <= 1000):
             # fig = plt.figure()
             # plt.title(str(features))
             # plt.scatter(xcoord, ycoord,  color='black')
@@ -175,14 +177,14 @@ def getFeatureVectors(input, window, filename):
             # plt.axis([-700,700,-400,400])
             # plt.savefig(filename + ' ' + str(j)+' future stroke new.png')
             # plt.close()
-            feature_data_f.append([filename,features,xcoord,ycoord,allRows[j][0],allRows[j][1]])
+            feature_data_f.append([filename,features_f,xcoord,ycoord,allRows[j][0],allRows[j][1],str(j)])
 
         # History histogram 
         x=[]
         y=[]
         xcoord = []
         ycoord = []
-        for i in range(1,window+1):
+        for i in range(1,4*window+1):
             if(all(map(lambda x: x==0.0,allRows[j-i]))):
                 break
             # if(i%4 > 0):
@@ -195,8 +197,9 @@ def getFeatureVectors(input, window, filename):
             xcoord.append(xh)
             ycoord.append(yh)
 
-        features = list(get_directional_features(x)) + list(get_centroidal_radius(x)) + [get_closure(x)]
-        features = [round(item,2) for item in features]
+        features_h = list(get_directional_features(x)) + list(get_centroidal_radius(x)) + [get_closure(x)]
+        features_h = [round(item,2) for item in features_h]
+        features = features_f + features_h
         feature_vector.append(features)
 
         if(j%20 == 1 and j <= 1000):
@@ -207,19 +210,23 @@ def getFeatureVectors(input, window, filename):
             # plt.axis([-700,700,-400,400])
             # plt.savefig(filename + ' ' + str(j)+' history stroke new.png')
             # plt.close()
-            feature_data_h.append([filename,features,xcoord,ycoord,allRows[j][0],allRows[j][1]])
+            feature_data_h.append([filename,features_h,xcoord,ycoord,allRows[j][0],allRows[j][1],str(j)])
 
-        input_data.append(feature_vector)
         j=j+1
 
     x_data = np.array(input_data)
+    y_sequence = []
     y_input = []
     for row in allRows:
         if(all(map(lambda x: x==0.0,row))):
-                continue
-        y_input.append(row[4])
-    y_data = np.array(y_input)
-    return x_data,y_data, feature_data_f, feature_data_h
+            if(len(y_sequence)>0):
+                y_sequence = y_sequence[1::2]
+                y_input.append(y_sequence)
+                y_sequence = []
+            continue
+        y_sequence.append([row[3], row[4]])
+    y_data = y_input
+    return input_data,y_data, feature_data_f, feature_data_h
 
 def get_minmax_features(input):
     features = []
@@ -235,41 +242,65 @@ def get_minmax_features(input):
     print(maxx)
     return minn, maxx
 
-filename = sys.argv[1]
-query = open(filename,'r')
+# filename = sys.argv[1]
+# query = open(filename,'r')
 
-input_data = []
-feature_data_f = []
-feature_data_h = []
-for i in range(1,len(sys.argv)):
-    filename = sys.argv[i]
-    input = open(filename,'r')
-    reader = csv.reader(input)
-    allRows = [row for row in reader]
-    # print(allRows)
-    columns = allRows.pop(0)
-    input_data = input_data + allRows
-    x_data, y_data, fd_f, fd_h = getFeatureVectors(allRows,40,filename)
-    feature_data_f.append(fd_f)
-    feature_data_h.append(fd_h)
+# input_data = []
+# feature_data_f = []
+# feature_data_h = []
+# for i in range(1,len(sys.argv)):
+#     filename = sys.argv[i]
+#     input = open(filename,'r')
+#     reader = csv.reader(input)
+#     allRows = [row for row in reader]
+#     # print(allRows)
+#     columns = allRows.pop(0)
+#     input_data = input_data + allRows
+#     x_data, y_data, fd_f, fd_h = getNewFeatureVectors(allRows,40,filename)
+#     feature_data_f.append(fd_f)
+#     feature_data_h.append(fd_h)
 
-feature_min, feature_max = get_minmax_features(feature_data_f+feature_data_h)
-j = 1
-for row in feature_data_f:
-    for row2 in row:
-        fig = plt.figure()
-        for i in range(0,11):
-            plt.scatter([i], [0], s=100, c=row2[1][i], vmin = feature_min[i], vmax = feature_max[i], cmap=cm.gray_r)
-        plt.savefig(row2[0] + ' ' + str(j)+' future feature new.png')
-        j = j+20
-        plt.close()
+# feature_min, feature_max = get_minmax_features(feature_data_f+feature_data_h)
+# j = 1
+# for row in feature_data_f:
+#     for row2 in row:
+#         fig = plt.figure()
+#         plt.scatter(row2[2], row2[3],  color='black')
+#         plt.scatter(row2[4],row2[5], color='red')
+#         plt.axis([-700,700,-400,400])
+#         plt.savefig(row2[0] + ' ' + row2[6] +' future stroke new.png')
+#         plt.close()
 
-allRows = [[float(j) for j in i] for i in input_data]
-sequence = []
-for row in allRows:
-    if(all(map(lambda x: x==0.0, row))):
-        if(len(sequence)>0):
-            get_closure(sequence)
-        sequence = []
-        continue
-    sequence.append(row)
+#         fig = plt.figure()
+#         for i in range(0,11):
+#             plt.scatter([i], [0], s=100, c=row2[1][i], vmin = feature_min[i], vmax = feature_max[i], cmap=cm.gray_r)
+#         plt.savefig(row2[0] + ' ' + row2[6] +' future feature new.png')
+#         j = j+20
+#         plt.close()
+
+# j = 1
+# for row in feature_data_h:
+#     for row2 in row:
+#         fig = plt.figure()
+#         plt.scatter(row2[2], row2[3],  color='black')
+#         plt.scatter(row2[4],row2[5], color='red')
+#         plt.axis([-700,700,-400,400])
+#         plt.savefig(row2[0] + ' ' + row2[6] +' history stroke new.png')
+#         plt.close()
+
+#         fig = plt.figure()
+#         for i in range(0,11):
+#             plt.scatter([i], [0], s=100, c=row2[1][i], vmin = feature_min[i], vmax = feature_max[i], cmap=cm.gray_r)
+#         plt.savefig(row2[0] + ' ' + row2[6] +' history feature new.png')
+#         j = j+20
+#         plt.close()
+
+# allRows = [[float(j) for j in i] for i in input_data]
+# sequence = []
+# for row in allRows:
+#     if(all(map(lambda x: x==0.0, row))):
+#         if(len(sequence)>0):
+#             get_closure(sequence)
+#         sequence = []
+#         continue
+#     sequence.append(row)

@@ -5,6 +5,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+from features import getNewFeatureVectors
 
 from keras.datasets import mnist
 from keras.models import Sequential
@@ -209,7 +210,9 @@ for window in [30,40]:
     for stroke in [30, 40, 50, 60, 70, 80, 90, 100]:
         for batch_size in [1, 5, 10, 20, 32, 64]:
 
-            x_data, y_data = getFeatureVectors(input_data,window)
+            x_data, y_data, f_h, f_f = getNewFeatureVectors(input_data,window,filename)
+            print(x_data)
+            print(y_data)
 
             # x_train = []
             # y_train = []
@@ -238,6 +241,8 @@ for window in [30,40]:
                     point_y = []
                     for k in range(0, stroke):
                         if (j+k) < len(x_data[i]):
+                            print(len(x_data[i]))
+                            print(len(y_data[i]))
                             point_x.append(x_data[i][j+k])
                             point_y.append(y_data[i][j+k])
                         else:
@@ -303,8 +308,16 @@ for window in [30,40]:
             x_test = x_train[len(x_train)-amount:]
             y_test = y_train[len(y_train)-amount:]
 
+            np.savetxt('xtest.txt',x_test,delimiter=',')
+            np.savetxt('ytest.txt',y_test,delimiter=',')
+
             x_train = x_train[:len(x_train)-amount]
             y_train = y_train[:len(y_train)-amount]
+
+            np.savetxt('xtrain.txt',x_train,delimiter=',')
+            np.savetxt('ytrain.txt',y_train,delimiter=',')
+
+            stop
 
             # print(np.array(x_test).shape)
 
@@ -344,25 +357,32 @@ for window in [30,40]:
                 model.fit(np.asarray(x_train),np.asarray(y_train), nb_epoch=150, batch_size=batch_size, verbose=2,
                     validation_data=(np.array(x_test), np.array(y_test)))
 
+                print('window = ' + str(window) + ', stroke = ' + str(stroke) + ', batch size = ' + str(batch_size))
                 scores = model.evaluate(np.array(x_test), np.array(y_test), verbose=0)
                 print('RNN test score:', scores)
 
                 out = model.predict(np.array(x_test),batch_size=batch_size, verbose=0)
                 out = [x for y in out for x in y]
                 predict = out
-                out = [item[0] for item in out]
+                out_x = [item[0] for item in out]
+                out_y = [item[1] for item in out]
                 y_testt = [x for y in y_test for x in y]
                 y_test_1 = [item[0] for item in y_testt]
-                out = np.array(out)
+                y_test_2 = [item[0] for item in y_testt]
+                out_x = np.array(out_x)
+                out_y = np.array(out_y)
                 predict = np.array(predict)
                 y_testt = np.array(y_testt)
                 y_test_1 = np.array(y_test_1)
-                out = out.flatten()
+                y_test_2 = np.array(y_test_2)
+                out_x = out_x.flatten()
+                out_y = out_y.flatten()
                 # print(out)
 
                 #y_test = np.array(y_test).flatten()
                 # out = [item[0] for item in out]
-                out = np.array(out)
+                out_x = np.array(out_x)
+                out_y = np.array(out_y)
 
                 # print(y_test)
                 # print(out)
@@ -375,8 +395,22 @@ for window in [30,40]:
                 # print(np.array(range(0,len(y_test))).size)
                 # print(np.array(out).size)
                 fig = plt.figure(figsize=(20,20))
+                plt.title('xtilt')
                 plt.scatter(np.array(range(0,len(y_test_1))), np.array(y_test_1),  color='black')
-                plt.plot(np.array(range(0,len(y_test_1))), np.array(out), color='blue', linewidth=3)
+                plt.plot(np.array(range(0,len(y_test_1))), np.array(out_x), color='blue', linewidth=3)
+
+                plt.axis([0,len(y_testt),-1,1])
+                plt.savefig(filename + ' ' + str(window)+' '+str(stroke)+' '+str(batch_size)+' '+str(it)+'xtilt.png')
+                plt.close()
+
+                fig = plt.figure(figsize=(20,20))
+                plt.title('ytilt')
+                plt.scatter(np.array(range(0,len(y_test_2))), np.array(y_test_2),  color='black')
+                plt.plot(np.array(range(0,len(y_test_2))), np.array(out_y), color='blue', linewidth=3)
+
+                plt.axis([0,len(y_testt),-1,1])
+                plt.savefig(filename + ' ' + str(window)+' '+str(stroke)+' '+str(batch_size)+' '+str(it)+'ytilt.png')
+                plt.close()
 
                 mse = 0
                 for i in range(0,len(y_testt)):
@@ -413,5 +447,3 @@ for window in [30,40]:
 
                 # plt.xticks(())
                 # plt.yticks(())
-                plt.axis([0,len(y_testt),-1,1])
-                plt.savefig(filename + ' ' + str(window)+' '+str(stroke)+' '+str(batch_size)+' '+str(it)+'.png')

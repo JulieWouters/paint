@@ -20,9 +20,7 @@ def show_stroke(input):
 
         length = len(xcoord)
         color = np.arange(length)
-        fig = plt.figure()
         plt.scatter(xcoord, ycoord,  c=color)
-        plt.show()
 
 def compare_tilt(input):
     index = 0
@@ -30,9 +28,13 @@ def compare_tilt(input):
     for row in input:
         new_input.append([index,row])
         index += 1
-    fig = plt.figure(figsize=(45,9))
-    plt.axis([-10,450,-50,40])
+    #fig = plt.figure(figsize=(45,9))
+    #plt.axis([-10,450,-50,40])
     for i in range(0,5):
+        fig = plt.figure()
+        plt.title('ytilt')
+        total_xtilt = []
+        total_ytilt = []
         for row in new_input:
             if(row[0]%5 == i):
                 stroke = row[1]
@@ -42,17 +44,40 @@ def compare_tilt(input):
                 xcoord = []
                 ycoord = []
                 xtilt = []
+                ytilt = []
                 for p in stroke:
                     x = p[0]-xstart
                     y = -p[1]-ystart
                     xcoord.append(x+70*i)
                     ycoord.append(y)
                     xtilt.append(p[3])
+                    ytilt.append(p[4])
 
+                total_xtilt = total_xtilt + xtilt
+                total_ytilt = total_ytilt + ytilt
                 length = len(xcoord)
-                color = np.array(xtilt)
-                plt.scatter(xcoord, ycoord, s=10, c=color, vmin=-0.2, vmax = 0.2)
-    plt.colorbar()
+                color = np.array(ytilt)
+                plt.scatter(xcoord, ycoord, s=20, c=color, vmin=0.40, vmax = 0.90)
+        print(' ')
+        print('Letter ' + str(i))
+        print('Mean xtilt: ')
+        print(np.mean(np.array(total_xtilt)))
+        print('Standard deviation xtilt: ')
+        print(np.std(np.array(total_xtilt)))
+        print('Mean ytilt:')
+        print(np.mean(np.array(total_ytilt)))
+        print('Standard deviation ytilt:')
+        print(np.std(np.array(total_ytilt)))
+        plt.colorbar()
+        plt.show()
+
+        fig = plt.figure()
+        plt.title('Drawing speed')
+        for row in new_input:
+            if(row[0]%5 == i):
+                show_stroke(row[1])
+        plt.show()
+        plt.close()
     plt.savefig('fig.png')
     plt.show()
     plt.close()
