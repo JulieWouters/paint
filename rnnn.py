@@ -211,8 +211,13 @@ for window in [30,40]:
         for batch_size in [1, 5, 10, 20, 32, 64]:
 
             x_data, y_data, f_h, f_f = getNewFeatureVectors(input_data,window,filename)
+            x_data = [item for sublist in x_data for item in sublist]
             print(x_data)
+            y_data = [item for sublist in y_data for item in sublist]
             print(y_data)
+
+            np.savetxt('xdata.txt',x_data,delimiter=',')
+            np.savetxt('ydata.txt',y_data,delimiter=',')
 
             # x_train = []
             # y_train = []
@@ -253,6 +258,7 @@ for window in [30,40]:
 
             x_train = np.array(x_train)
             y_train = np.array(y_train)
+
 
             # print('x train:')
             # print(np.array(x_train).shape)
@@ -308,14 +314,18 @@ for window in [30,40]:
             x_test = x_train[len(x_train)-amount:]
             y_test = y_train[len(y_train)-amount:]
 
-            np.savetxt('xtest.txt',x_test,delimiter=',')
-            np.savetxt('ytest.txt',y_test,delimiter=',')
+            with open('xtest.txt','wb') as x:
+                np.savetxt(x,x_test,delimiter=',')
+            with open('ytest.txt','wb') as y:
+                np.savetxt(y,y_test,delimiter=',')
 
             x_train = x_train[:len(x_train)-amount]
             y_train = y_train[:len(y_train)-amount]
 
-            np.savetxt('xtrain.txt',x_train,delimiter=',')
-            np.savetxt('ytrain.txt',y_train,delimiter=',')
+            with open('xtrain.txt','wb') as x:
+                np.savetxt(x,x_train,delimiter=',')
+            with open('ytrain.txt','wb') as y:
+                np.savetxt(y,y_train,delimiter=',')
 
             stop
 

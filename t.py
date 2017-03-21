@@ -36,7 +36,7 @@ def compare_tilt(input):
         total_xtilt = []
         total_ytilt = []
         for row in new_input:
-            if(row[0]%5 == i):
+       #     if(row[0]%5 == i):
                 stroke = row[1]
                 xstart = stroke[0][0]
                 ystart = -stroke[0][1]
