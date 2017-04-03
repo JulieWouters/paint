@@ -144,7 +144,7 @@ def getNewFeatureVectors(input, window, filename):
         if(all(map(lambda x: x==0.0, row))):
             j=j+1
             if(len(feature_vector)>0):
-                feature_vector = feature_vector[1::2]
+                #feature_vector = feature_vector[1::2]
                 input_data.append(feature_vector)
             feature_vector = []
             continue
@@ -199,7 +199,7 @@ def getNewFeatureVectors(input, window, filename):
 
         features_h = list(get_directional_features(x)) + list(get_centroidal_radius(x)) + [get_closure(x)]
         features_h = [round(item,2) for item in features_h]
-        features = features_f + features_h
+        features = [allRows[j][0], allRows[j][1]] + features_f + features_h
         feature_vector.append(features)
 
         if(j%20 == 1 and j <= 1000):
@@ -220,7 +220,7 @@ def getNewFeatureVectors(input, window, filename):
     for row in allRows:
         if(all(map(lambda x: x==0.0,row))):
             if(len(y_sequence)>0):
-                y_sequence = y_sequence[1::2]
+                #y_sequence = y_sequence[1::2]
                 y_input.append(y_sequence)
                 y_sequence = []
             continue
