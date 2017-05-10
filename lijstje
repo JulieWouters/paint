@@ -1,0 +1,10 @@
+nieuwe feature vector           
+feature vectors vergelijken     V
+data set maken                  
+tijd in curve visualiseren      V
+andere methode proberen: svm
+naam schrijven x 10             V
+--> gemiddelde etc              V
+wat is tilt?                    V
+xtilt = hoek (radialen, max 1 = ongeveer 60 graden) tussen z-as en projectie van pen op xz-vlak, ytilt = hoek tussen z-as en projectie op yz-vlak
+matlab
